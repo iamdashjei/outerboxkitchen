@@ -14,7 +14,8 @@ import 'package:outerboxkitchen/src/models/product_reports.dart';
 import 'package:outerboxkitchen/src/models/store_details.dart';
 import 'package:outerboxkitchen/src/utils/user_sessions.dart';
 import 'package:image/image.dart' as img;
-
+import 'package:flutter_blue/flutter_blue.dart';
+import 'package:blue_thermal_printer/blue_thermal_printer.dart' as ble;
 
 class Printer {
 
@@ -343,8 +344,8 @@ class Printer {
     ticket.text(tableName,
         styles: PosStyles(
           align: PosAlign.center,
-          height: PosTextSize.size3,
-          width: PosTextSize.size2,
+          height: PosTextSize.size4,
+          width: PosTextSize.size3,
           bold: true,
         ));
 

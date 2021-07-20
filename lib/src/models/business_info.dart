@@ -3,16 +3,24 @@ class BusinessInfo {
   String businessLogo;
   String cashierName;
   String merchantId;
+  String commissaryId;
+  String clusterId;
+  String headOfficeId;
   String salesId;
   String accountType;
+  String uid;
 
   BusinessInfo({
     this.businessName,
     this.businessLogo,
     this.cashierName,
     this.merchantId,
+    this.commissaryId,
+    this.clusterId,
     this.salesId,
-    this.accountType
+    this.accountType,
+    this.uid,
+    this.headOfficeId
   });
 
   BusinessInfo.fromJson(Map<String, dynamic> json) {
@@ -20,7 +28,10 @@ class BusinessInfo {
     businessLogo = json['businessLogo'];
     cashierName = json['cashierName'];
     merchantId = json['merchantId'];
+    commissaryId = json['commissaryId'];
+    clusterId = json['clusterId'];
     salesId = json['salesId'];
+    headOfficeId = json['headOfficeId'];
   }
 
   Map<String,dynamic> toJson() {
@@ -29,7 +40,10 @@ class BusinessInfo {
     data['businessLogo'] = businessLogo;
     data['cashierName'] = cashierName;
     data['merchantId'] = merchantId;
+    data['commissaryId'] = commissaryId;
+    data['clusterId'] = clusterId;
     data['salesId'] = salesId;
+    data['headOfficeId'] = headOfficeId;
     return data;
   }
 }

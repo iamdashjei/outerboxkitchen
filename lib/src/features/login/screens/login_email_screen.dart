@@ -50,7 +50,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                 height: 50,
               ),
               Center(
-                child:  Image.asset('assets/images/francos_main.png',
+                child:  Image.asset('assets/images/outerboxmain.png',
                   height: 350.0,
                   width: 350.0,),
               ),

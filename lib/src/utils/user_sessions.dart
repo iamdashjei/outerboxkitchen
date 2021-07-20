@@ -175,17 +175,60 @@ class UserSessions {
     _prefs.setString("kitchenDetails", '$kitchenUserName,$merchantId');
   }
 
+  static saveCommissaryId(String id) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("commissaryId", id);
+  }
+
+  static saveClusterId(String id) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("clusterId", id);
+  }
+
+  static saveHeadOfficeId(String id) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("headOfficeId", id);
+  }
+
+  static saveAdminRole(String type) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("adminType", type);
+  }
+
+  static saveEmail(String email) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("userEmail", email);
+  }
+
+  static saveAdminUID(String uid) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("adminUID", uid);
+  }
+
+  static savePassword(String password) async {
+    SharedPreferences _prefs = await _sharedPreference();
+    _prefs.setString("userPassword", password);
+  }
+
   static Future<BusinessInfo> getKitchenDetails() async {
     SharedPreferences _prefs = await _sharedPreference();
     StoreDetails data = await DatabaseHelper().getStoreDetails();
+    String headOfficeId = await getHeadOfficeId();
+    String commissaryId = await getCommissaryId();
+    String clusterId = await getClusterId();
+    String uid = await getAdminUID();
     HeadOfficeDetails image = await DatabaseHelper().getHeadOfficeDetails();
     BusinessInfo info = new BusinessInfo();
     info.cashierName = _prefs.getString("kitchenDetails").split(',')[0] ?? '';
     info.businessName = data.businessName;
     info.businessLogo = 'https://$PROD_URL/img/business/${image.businessIcon}';
     info.merchantId = _prefs.getString("kitchenDetails").split(',')[1] ?? '';
+    info.headOfficeId = headOfficeId;
+    info.commissaryId = commissaryId;
+    info.clusterId = clusterId;
     info.salesId = "none";
     info.accountType = data.accountType;
+    info.uid = uid;
     return info;
   }
 
@@ -197,6 +240,41 @@ class UserSessions {
   static Future<String> getPrinterID() async {
     SharedPreferences _prefs = await _sharedPreference();
     return _prefs.getString("printerId") ?? '';
+  }
+
+  static Future<String> getAdminUID() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("adminUID") ?? '';
+  }
+
+  static Future<String> getAdminRole() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("adminType") ?? '';
+  }
+
+  static Future<String> getHeadOfficeId() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("headOfficeId") ?? '';
+  }
+
+  static Future<String> getCommissaryId() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("commissaryId") ?? '';
+  }
+
+  static Future<String> getUserEmail() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("userEmail") ?? '';
+  }
+
+  static Future<String> getUserPassword() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("userPassword") ?? '';
+  }
+
+  static Future<String> getClusterId() async {
+    SharedPreferences _prefs = await _sharedPreference();
+    return _prefs.getString("clusterId") ?? '';
   }
 
 

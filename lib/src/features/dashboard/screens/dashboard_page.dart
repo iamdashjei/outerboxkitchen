@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pusher/pusher.dart';
 import 'package:outerboxkitchen/src/database/database_helper.dart';
+import 'package:outerboxkitchen/src/features/bulletin/news_feed.dart';
+import 'package:outerboxkitchen/src/features/chatroom/chat.dart';
 import 'package:outerboxkitchen/src/features/dashboard/widgets/bluetooth_serial_widget.dart';
 import 'package:outerboxkitchen/src/features/dashboard/widgets/item_view_v2.dart';
 import 'package:outerboxkitchen/src/features/dashboard/widgets/printer.dart';
@@ -20,6 +22,7 @@ import 'package:outerboxkitchen/src/features/settings/settings_page.dart';
 import 'package:outerboxkitchen/src/models/current_user.dart';
 import 'package:outerboxkitchen/src/models/store_firebase.dart';
 import 'package:outerboxkitchen/src/models/table_join_order.dart';
+import 'package:outerboxkitchen/src/services/stream_user_api.dart';
 import 'package:outerboxkitchen/src/utils/user_sessions.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart' as ble;
@@ -90,7 +93,7 @@ class _DashboardPageState extends State<DashboardPage>
     //enableBT();
     printConnectionThread();
     testPrint= TestPrint();
-
+    loginChat();
     super.initState();
   }
 
@@ -102,58 +105,61 @@ class _DashboardPageState extends State<DashboardPage>
     // FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
     recentEmails = await UserSessions.getRecentUsers();
     _timer = Timer.periodic(Duration(seconds: 1), ( tick ) async {
-      printerId = await UserSessions.getPrinterID();
-
-      bool isConnectedDevice= await bluetoothBLE.isConnected;
-      List<ble.BluetoothDevice> devices = [];
-      try {
-        devices = await bluetoothBLE.getBondedDevices();
-      } on PlatformException {
-        // TODO - Error
-      }
-
-      if(!isConnectedDevice){
-        for(ble.BluetoothDevice itemDevice in devices){
-         // print(itemDevice.connected);
-          _connect(itemDevice);
-        }
-      }
-
-
-
-
-      bluetoothBLE.onStateChanged().listen((state) {
-        switch (state) {
-          case ble.BlueThermalPrinter.CONNECTED:
-            print("CONNECTED");
-            setState(() {
-
-              isConnected = "true";
-            });
-            break;
-          case ble.BlueThermalPrinter.DISCONNECTED:
-            print("DISCONNECTED");
-            bluetoothBLE.disconnect();
-            setState(() {
-              isConnected = "false";
-            });
-            break;
-          default:
-            print(state);
-            break;
-        }
-      });
-
-
-      if(isConnectedDevice){
-        setState(() {
-          isConnected = "true";
-        });
-      } else {
-        setState(() {
-          isConnected = "false";
-        });
-      }
+      // printerId = await UserSessions.getPrinterID();
+      //
+      // bool isConnectedDevice= await bluetoothBLE.isConnected;
+      // List<ble.BluetoothDevice> devices = [];
+      // try {
+      //   devices = await bluetoothBLE.getBondedDevices();
+      // } on PlatformException {
+      //   // TODO - Error
+      // }
+      //
+      // if(!isConnectedDevice){
+      //   for(ble.BluetoothDevice itemDevice in devices){
+      //    // print(itemDevice.connected);
+      //     _connect(itemDevice);
+      //   }
+      // }
+      //
+      //
+      //
+      //
+      // if(isConnectedDevice){
+      //   bluetoothBLE.onStateChanged().listen((state) {
+      //     switch (state) {
+      //       case ble.BlueThermalPrinter.CONNECTED:
+      //         print("CONNECTED");
+      //         setState(() {
+      //
+      //           isConnected = "true";
+      //         });
+      //         break;
+      //       case ble.BlueThermalPrinter.DISCONNECTED:
+      //         print("DISCONNECTED");
+      //         bluetoothBLE.disconnect();
+      //         setState(() {
+      //           isConnected = "false";
+      //         });
+      //         break;
+      //       default:
+      //         print(state);
+      //         break;
+      //     }
+      //   });
+      // }
+      //
+      //
+      //
+      // if(isConnectedDevice){
+      //   setState(() {
+      //     isConnected = "true";
+      //   });
+      // } else {
+      //   setState(() {
+      //     isConnected = "false";
+      //   });
+      // }
 
 
 
@@ -345,7 +351,7 @@ class _DashboardPageState extends State<DashboardPage>
                         ),
                         onSelected: handleClick,
                         itemBuilder: (BuildContext context) {
-                          return {'Settings', 'Logout'}.map((String choice) {
+                          return {'Chatroom', 'Bulletin','Settings', 'Logout'}.map((String choice) {
                             return PopupMenuItem<String>(
                               value: choice,
                               child: Text("$choice"),
@@ -423,6 +429,16 @@ class _DashboardPageState extends State<DashboardPage>
             context, MaterialPageRoute(builder: (context) => SettingsPage()));
         break;
 
+      case 'Chatroom':
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => Chat()));
+        break;
+
+      case 'Bulletin':
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => NewsFeed()));
+        break;
+
 
       // case 'Print':
       //
@@ -476,6 +492,22 @@ class _DashboardPageState extends State<DashboardPage>
         return alert;
       },
     );
+  }
+
+  loginChat() async {
+    print("INIT LOGIN CHAT");
+    await UserSessions.getKitchenDetails().then((value) async {
+      await StreamUserApi.login(idUser: value.uid,
+          fullName: value.cashierName,
+          avatar: "",
+          merchantId: value.merchantId,
+          headOfficeId: value.headOfficeId,
+          commissaryId: value.commissaryId,
+          clusterId: value.clusterId,
+          type: value.accountType,
+          uid: value.uid);
+      //createChannelWithUsers(info.uid, info.accountType, info.commissaryId, info.clusterId, info.headOfficeId, info.cashierName);
+    });
   }
 
   @override

@@ -48,7 +48,7 @@ class _LoginBuilderState extends State<LoginBuilder> {
                 children: <Widget>[
                  Container(
                    child: Image.asset(
-                     "assets/images/kumpares.png",
+                     "assets/images/outerboxmain.png",
                      fit: BoxFit.cover,
                    ),
                    height: 440,

@@ -61,7 +61,7 @@ class LoginPinCodeState extends State<LoginPinCodeScreen>{
                 SizedBox(height: 30),
                 Center(
                   child: Image.asset(
-                    'assets/images/francos_main.png',
+                    'assets/images/outerboxmain.png',
                     height: 350.0,
                     width: 350.0,
                   ),

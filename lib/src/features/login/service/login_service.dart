@@ -1,29 +1,50 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:device_info/device_info.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart';
 import 'package:outerboxkitchen/src/database/database_helper.dart';
 import 'package:outerboxkitchen/src/features/login/models/token.dart';
 import 'package:outerboxkitchen/src/features/login/models/user_model.dart';
+import 'package:outerboxkitchen/src/models/FirebaseUser.dart';
 import 'package:outerboxkitchen/src/models/headoffice_details.dart';
 import 'package:outerboxkitchen/src/models/orders_by_table.dart';
+import 'package:outerboxkitchen/src/models/received_message_model.dart';
 import 'package:outerboxkitchen/src/models/resource.dart';
 import 'package:outerboxkitchen/src/services/api_provider.dart';
+import 'package:outerboxkitchen/src/services/push_notif_manager.dart';
+import 'package:outerboxkitchen/src/services/stream_user_api.dart';
 import 'package:outerboxkitchen/src/utils/constants.dart';
 import 'package:outerboxkitchen/src/utils/save_image.dart';
 import 'package:outerboxkitchen/src/utils/user_sessions.dart';
 import 'package:http/http.dart' as http;
+import 'package:rxdart/rxdart.dart';
 
 class LoginService {
+
+  // ignore: close_sinks
+  final BehaviorSubject<ReceivedNotificationModel> didReceiveLocalNotificationSubject =
+  BehaviorSubject<ReceivedNotificationModel>();
+
+  // ignore: close_sinks
+  final BehaviorSubject<String> selectNotificationSubject =
+  BehaviorSubject<String>();
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+  NotificationAppLaunchDetails notificationAppLaunchDetails;
 
   static Future<String> logIn({
     @required String email,
     @required String password,
   }) async {
     try {
+      DatabaseReference usersReference = FirebaseDatabase.instance.reference().child("users");
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
       Token token = await LoginService.getToken(email: email, password: password);
@@ -36,7 +57,47 @@ class LoginService {
         Resource resource = await LoginService.getResources(deviceId: androidInfo.androidId, token: token.accessToken);
 
         if(resource.staffDetails != null){
+          UserSessions.saveEmail(email);
+          UserSessions.savePassword(password);
+          UserSessions.saveAdminUID(resource.staffDetails.id);
+          UserSessions.setMerchantId(resource.staffDetails.merchantId);
+          UserSessions.saveCommissaryId(resource.staffDetails.commissaryId);
+          UserSessions.saveClusterId(resource.staffDetails.clusterId);
 
+          TransactionResult transactionResult = await usersReference.child(resource.staffDetails.id).runTransaction((MutableData mutableData) async {
+            return mutableData;
+          });
+
+
+          if(transactionResult.dataSnapshot.value != null){
+            FirebaseUser firebaseUser = new FirebaseUser();
+            firebaseUser.uid = resource.staffDetails.id;
+            firebaseUser.name = resource.staffDetails.fName + " " + resource.staffDetails.lName;
+            firebaseUser.status = "Active";
+            firebaseUser.email = email;
+            firebaseUser.avatar = "";
+            firebaseUser.pin = password;
+            firebaseUser.loginName = resource.staffDetails.fName + " " + resource.staffDetails.lName;
+            firebaseUser.lastActiveAt = DateTime.now().millisecondsSinceEpoch;
+            firebaseUser.type = resource.staffDetails.role;
+            usersReference.child(resource.staffDetails.id).update(firebaseUser.toJson());
+            UserSessions.saveAdminRole(resource.staffDetails.role);
+          } else {
+            Map<String, dynamic> childUpdate = new HashMap<String, dynamic>();
+            FirebaseUser firebaseUser = new FirebaseUser();
+            firebaseUser.uid = resource.staffDetails.id;
+            firebaseUser.name = resource.staffDetails.fName + " " + resource.staffDetails.lName;
+            firebaseUser.status = "Active";
+            firebaseUser.email = email;
+            firebaseUser.avatar = "";
+            firebaseUser.pin = password;
+            firebaseUser.loginName = resource.staffDetails.fName + " " + resource.staffDetails.lName;
+            firebaseUser.lastActiveAt = DateTime.now().millisecondsSinceEpoch;
+            firebaseUser.type = resource.staffDetails.role;
+            childUpdate.putIfAbsent(resource.staffDetails.id, () => firebaseUser.toJson());
+            usersReference.update(childUpdate);
+            UserSessions.saveAdminRole(resource.staffDetails.role);
+          }
           UserSessions.saveKitchenDetails(resource.staffDetails.fName + " " + resource.staffDetails.lName, resource.staffDetails.merchantId);
         }
         if(resource.headOfficeDetails != null){
@@ -54,6 +115,9 @@ class LoginService {
         UserSessions.setBearerToken(token.accessToken);
         UserSessions.savePinCode(password);
         UserSessions.setLoggedIn();
+        PushNotificationsManager().init();
+        // LoginService().loginChat();
+        LoginService().initPlatformSpecifics();
         return "Success";
       } else {
         return "Invalid";
@@ -130,6 +194,50 @@ class LoginService {
       throw Exception('Request failed');
     }
     return Resource.fromJson(jsonDecode(resourceResponse.body));
+  }
+
+  loginChat() async {
+    await UserSessions.getKitchenDetails().then((value) async {
+      await StreamUserApi.login(idUser: value.uid,
+          fullName: value.cashierName,
+          avatar: "",
+          merchantId: value.merchantId,
+          headOfficeId: value.headOfficeId,
+          commissaryId: value.commissaryId,
+          clusterId: value.clusterId,
+          type: value.accountType,
+          uid: value.uid);
+      //createChannelWithUsers(info.uid, info.accountType, info.commissaryId, info.clusterId, info.headOfficeId, info.cashierName);
+    });
+  }
+
+  void initPlatformSpecifics() async{
+    notificationAppLaunchDetails =
+    await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    await initNotifications(flutterLocalNotificationsPlugin);
+
+  }
+
+  Future<void> initNotifications(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
+    var initializationSettingsAndroid = AndroidInitializationSettings('ic_launcher');
+    var initializationSettingsIOS = IOSInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+        onDidReceiveLocalNotification:
+            (int id, String title, String body, String payload) async {
+          didReceiveLocalNotificationSubject.add(ReceivedNotificationModel(
+              id: id, title: title, body: body, payload: payload));
+        });
+    var initializationSettings = InitializationSettings(
+        initializationSettingsAndroid, initializationSettingsIOS);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: (String payload) async {
+          if (payload != null) {
+            // debugPrint('notification payload: ' + payload);
+          }
+          selectNotificationSubject.add(payload);
+        });
   }
 
 }
