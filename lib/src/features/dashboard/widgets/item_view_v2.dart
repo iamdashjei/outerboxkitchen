@@ -960,42 +960,45 @@ class _ItemViewV2State extends State<ItemViewV2> with WidgetsBindingObserver{
                     ),
                   ),
                 ),
-                content: SingleChildScrollView(
-                  child: Container(
-                    height: itemCount (item.listItem.length),
-                    width: 500,
-                    child: Column(
-                      //crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                content: Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: SingleChildScrollView(
+                    child: ListBody(
                       children: <Widget>[
-                        Text(item.tableName,
-                          style: TextStyle(
-                              color: HexColor("#0B1043"),
-                              fontSize: MediaQuery.of(context).textScaleFactor * 25,
-                              fontWeight: FontWeight.bold),
-                        ),
-
-                        SizedBox(height: 10),
-
                         Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: newItemList(item.listItem),
-                        ),
-                        SizedBox(height: 25),
-                        Row(
+                          //crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                          ],
-                        ),
+                            Text(item.tableName,
+                              style: TextStyle(
+                                  color: HexColor("#0B1043"),
+                                  fontSize: MediaQuery.of(context).textScaleFactor * 25,
+                                  fontWeight: FontWeight.bold),
+                            ),
 
-                        SizedBox(height: 25),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            okButton
+                            SizedBox(height: 10),
+
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: newItemList(item.listItem),
+                            ),
+                            SizedBox(height: 25),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                              ],
+                            ),
+
+                            SizedBox(height: 25),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                okButton
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ]
                     ),
                   ),
                 ),

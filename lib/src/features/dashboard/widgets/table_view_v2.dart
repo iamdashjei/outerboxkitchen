@@ -122,6 +122,7 @@ class _TableViewV2State extends State<TableViewV2> with WidgetsBindingObserver{
     switch (state) {
       case AppLifecycleState.resumed:
         print("app in resumed");
+        //showExampleDialog();
         // Navigator.of(context).pushAndRemoveUntil<void>(
         //   // HomePage.route(),
         //   //     (route) => false,
@@ -346,6 +347,7 @@ class _TableViewV2State extends State<TableViewV2> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
@@ -475,6 +477,163 @@ class _TableViewV2State extends State<TableViewV2> with WidgetsBindingObserver{
     );
   }
 
+  showExampleDialog() async {
+    await advancedPlayer.release();
+    await advancedPlayer.setReleaseMode(ReleaseMode.LOOP);
+    advancedPlayer.play(await audioCache.getAbsoluteUrl('mp3/alarming.mp3'), isLocal: true);
+    // set up the button
+    Widget okButton = FlatButton(
+      color: HexColor("#0C9E1F"),
+      textColor: Colors.white,
+      padding: EdgeInsets.only(left: 50, top: 10, bottom: 10, right: 50),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5.0),
+          side: BorderSide(color: HexColor("#0C9E1F"))
+      ),
+      child: Text("OK", style: TextStyle(
+          color: Colors.white,
+          fontSize: MediaQuery.of(context).textScaleFactor * 25,
+          fontWeight: FontWeight.bold),),
+      onPressed: () async {
+        addedTableItems = [];
+
+        _refreshData();
+
+        await advancedPlayer.stop();
+        Navigator.of(context).pop();
+
+      },
+    );
+
+    // set up the button
+    Widget cancel = FlatButton(
+      color: HexColor("#FF0000"),
+      textColor: Colors.white,
+      padding: EdgeInsets.only(left: 25, top: 10, bottom: 10, right: 25),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5.0),
+          side: BorderSide(color: HexColor("#FF0000"))
+      ),
+      child: Text("Cancel", style: TextStyle(
+          color: Colors.white,
+          fontSize: MediaQuery.of(context).textScaleFactor * 25,
+          fontWeight: FontWeight.bold),),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+            builder: (context, setState)
+            {
+
+              return AlertDialog(
+                titlePadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.zero,
+                title: Container(
+                  height: 50,
+                  decoration: new BoxDecoration(
+                    color: HexColor("#FFAA00"),
+                  ),
+                  child: Center(
+                    child: Text("NEW ORDER!",
+                      style: TextStyle(
+                          color: HexColor("#0B1043"),
+                          fontSize: MediaQuery.of(context).textScaleFactor * 25,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                content: Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: SingleChildScrollView(
+                    child: ListBody(
+                        children: [
+                          Column(
+                            //crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text("MY TABLE ITEM",
+                                style: TextStyle(
+                                    color: HexColor("#0B1043"),
+                                    fontSize: MediaQuery.of(context).textScaleFactor * 25,
+                                    fontWeight: FontWeight.bold),
+                              ),
+
+                              SizedBox(height: 10),
+
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: sampleItemList(),
+                              ),
+                              SizedBox(height: 25),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                ],
+                              ),
+
+                              SizedBox(height: 25),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  okButton
+                                ],
+                              ),
+                              SizedBox(height: 15),
+                            ],
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+              );
+            });
+      },
+    );
+  }
+
+  List<Widget> sampleItemList(){
+    List<Widget> sampleAddWidget = [];
+
+    for(int x = 0; x < 50; x++){
+      Widget rowWidget = Row(
+        children: [
+          SizedBox(width: 20),
+          Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(x.toString() + " x", style: TextStyle(color: HexColor("#0B1043"), fontSize: 18, fontWeight: FontWeight.bold), maxLines: 4,),
+
+              ],
+            ),
+          ),
+          Container(
+            width: 370,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Sample Test Data", style: TextStyle(color: HexColor("#0B1043"), fontSize: 18, fontWeight: FontWeight.bold), maxLines: 4,),
+              ],
+            ),
+          ),
+        ],
+      );
+
+      sampleAddWidget.add(rowWidget);
+    }
+
+    return sampleAddWidget;
+  }
+
   showAlertDialog(BuildContext context, StoreOrderFirebase item) async {
     await advancedPlayer.release();
     await advancedPlayer.setReleaseMode(ReleaseMode.LOOP);
@@ -500,76 +659,6 @@ class _TableViewV2State extends State<TableViewV2> with WidgetsBindingObserver{
           Map<String, dynamic> childUpdate = new HashMap<String, dynamic>();
           childUpdate.putIfAbsent(item.key, () => item.toJson());
           DatabaseHelper().selectItems(item);
-          // if(_currentList.length > 0){
-          //   DatabaseHelper().selectItems(item);
-          // } else {
-          //   String uuid = Uuid().v4();
-          //   TableOrder tableOrder = new TableOrder();
-          //   tableOrder.key = item.key;
-          //   tableOrder.transUuid = uuid;
-          //   tableOrder.transactionNo = item.transactionNo;
-          //   tableOrder.tableIdRtdb = item.tableId;
-          //   tableOrder.tableName = item.tableName;
-          //   tableOrder.cashierName = item.cashierName;
-          //   tableOrder.customerName = item.customerName;
-          //   tableOrder.merchantId = item.merchantId;
-          //   tableOrder.storeId = item.storeId;
-          //   tableOrder.type = item.type;
-          //   tableOrder.from = item.from;
-          //   tableOrder.to = item.to;
-          //   tableOrder.createdAt = item.createdAt;
-          //   tableOrder.status = item.status;
-          //   DatabaseHelper().insertItemToTableOrders(tableOrder);
-          //
-          //   item.listItem.forEach((mapKey, mapValue) async {
-          //
-          //     //print(mapValue["completeCount"]);
-          //     ItemOrder itemOrder = new ItemOrder();
-          //     itemOrder.key = item.key;
-          //     itemOrder.transUuid = uuid;
-          //     itemOrder.transactionNo = item.transactionNo;
-          //     itemOrder.tableIdRtdb = item.tableId;
-          //     itemOrder.tableName = item.tableName;
-          //     itemOrder.customerName = item.customerName;
-          //     itemOrder.merchantId = item.merchantId;
-          //     itemOrder.storeId = item.storeId;
-          //     itemOrder.orderIdRtdb = mapValue["id"].toString();
-          //     itemOrder.itemName = mapValue["itemName"].toString().replaceAll("'", "");
-          //     itemOrder.variance = mapValue["variance"].toString();
-          //     itemOrder.quantity = int.parse(mapValue["quantity"].toString());
-          //     itemOrder.completedCount = int.parse(mapValue["completeCount"].toString());
-          //     itemOrder.isTakeOUt = int.parse(mapValue["isTakeOut"].toString());
-          //     itemOrder.price = double.parse(mapValue["price"].toString());
-          //     itemOrder.timestamp = int.parse(mapValue["timeStamp"].toString());
-          //     itemOrder.timerLastValue = mapValue["timerLastValue"].toString();
-          //     itemOrder.uuid = mapValue["uuid"].toString();
-          //     itemOrder.status = mapValue["completed"].toString();
-          //     DatabaseHelper().insertItemToItemOrders(itemOrder);
-          //
-          //     TableItems tableItems = new TableItems();
-          //     tableItems.key = item.key;
-          //     tableItems.transUuid = uuid;
-          //     tableItems.transactionNo = item.transactionNo;
-          //     tableItems.tableIdRtdb = item.tableId;
-          //     tableItems.tableName = item.tableName;
-          //     tableItems.customerName = item.customerName;
-          //     tableItems.merchantId = item.merchantId;
-          //     tableItems.storeId = item.storeId;
-          //     tableItems.orderIdRtdb = mapValue["id"].toString();
-          //     tableItems.itemName = mapValue["itemName"].toString().replaceAll("'", "");
-          //     tableItems.variance = mapValue["variance"].toString();
-          //     tableItems.quantity = int.parse(mapValue["quantity"].toString());
-          //     tableItems.completedCount = int.parse(mapValue["completeCount"].toString());
-          //     tableItems.isTakeOUt = int.parse(mapValue["isTakeOut"].toString());
-          //     tableItems.timestamp = int.parse(mapValue["timeStamp"].toString());
-          //     tableItems.timerLastValue = mapValue["timerLastValue"].toString();
-          //     tableItems.status = mapValue["completed"].toString();
-          //     DatabaseHelper().insertItemToTableItems(tableItems);
-          //
-          //   });
-          // }
-
-
 
           item.listItem.forEach((mapKey, mapValue) async {
 
@@ -646,43 +735,45 @@ class _TableViewV2State extends State<TableViewV2> with WidgetsBindingObserver{
                     ),
                   ),
                 ),
-                content: SingleChildScrollView(
-
-                  child: Container(
-                    height: itemCount(item.listItem.length),
-                    width: 500,
-                    child: Column(
-                      //crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                content: Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: SingleChildScrollView(
+                    child: ListBody(
                       children: <Widget>[
-                        Text(item.tableName,
-                          style: TextStyle(
-                              color: HexColor("#0B1043"),
-                              fontSize: MediaQuery.of(context).textScaleFactor * 25,
-                              fontWeight: FontWeight.bold),
-                        ),
-
-                        SizedBox(height: 10),
-
                         Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: newItemList(item.listItem),
-                        ),
-                        SizedBox(height: 25),
-                        Row(
+                          //crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                          ],
-                        ),
+                            Text(item.tableName,
+                              style: TextStyle(
+                                  color: HexColor("#0B1043"),
+                                  fontSize: MediaQuery.of(context).textScaleFactor * 25,
+                                  fontWeight: FontWeight.bold),
+                            ),
 
-                        SizedBox(height: 25),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            okButton
+                            SizedBox(height: 10),
+
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: newItemList(item.listItem),
+                            ),
+                            SizedBox(height: 25),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                              ],
+                            ),
+
+                            SizedBox(height: 25),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                okButton
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ]
                     ),
                   ),
                 ),

@@ -104,62 +104,62 @@ class _DashboardPageState extends State<DashboardPage>
     // await FlutterStatusbarcolor.setStatusBarColor(Colors.orange);
     // FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
     recentEmails = await UserSessions.getRecentUsers();
-    _timer = Timer.periodic(Duration(seconds: 1), ( tick ) async {
-      // printerId = await UserSessions.getPrinterID();
-      //
-      // bool isConnectedDevice= await bluetoothBLE.isConnected;
-      // List<ble.BluetoothDevice> devices = [];
-      // try {
-      //   devices = await bluetoothBLE.getBondedDevices();
-      // } on PlatformException {
-      //   // TODO - Error
-      // }
-      //
-      // if(!isConnectedDevice){
-      //   for(ble.BluetoothDevice itemDevice in devices){
-      //    // print(itemDevice.connected);
-      //     _connect(itemDevice);
-      //   }
-      // }
-      //
-      //
-      //
-      //
-      // if(isConnectedDevice){
-      //   bluetoothBLE.onStateChanged().listen((state) {
-      //     switch (state) {
-      //       case ble.BlueThermalPrinter.CONNECTED:
-      //         print("CONNECTED");
-      //         setState(() {
-      //
-      //           isConnected = "true";
-      //         });
-      //         break;
-      //       case ble.BlueThermalPrinter.DISCONNECTED:
-      //         print("DISCONNECTED");
-      //         bluetoothBLE.disconnect();
-      //         setState(() {
-      //           isConnected = "false";
-      //         });
-      //         break;
-      //       default:
-      //         print(state);
-      //         break;
-      //     }
-      //   });
-      // }
-      //
-      //
-      //
-      // if(isConnectedDevice){
-      //   setState(() {
-      //     isConnected = "true";
-      //   });
-      // } else {
-      //   setState(() {
-      //     isConnected = "false";
-      //   });
-      // }
+    _timer = Timer.periodic(Duration(seconds: 10), ( tick ) async {
+      printerId = await UserSessions.getPrinterID();
+
+      bool isConnectedDevice= await bluetoothBLE.isConnected;
+      List<ble.BluetoothDevice> devices = [];
+      try {
+        devices = await bluetoothBLE.getBondedDevices();
+      } on PlatformException {
+        // TODO - Error
+      }
+
+      if(!isConnectedDevice){
+        for(ble.BluetoothDevice itemDevice in devices){
+         // print(itemDevice.connected);
+          _connect(itemDevice);
+        }
+      }
+
+
+
+
+      if(isConnectedDevice){
+        bluetoothBLE.onStateChanged().listen((state) {
+          switch (state) {
+            case ble.BlueThermalPrinter.CONNECTED:
+              print("CONNECTED");
+              setState(() {
+
+                isConnected = "true";
+              });
+              break;
+            case ble.BlueThermalPrinter.DISCONNECTED:
+              print("DISCONNECTED");
+              bluetoothBLE.disconnect();
+              setState(() {
+                isConnected = "false";
+              });
+              break;
+            default:
+              print(state);
+              break;
+          }
+        });
+      }
+
+
+
+      if(isConnectedDevice){
+        setState(() {
+          isConnected = "true";
+        });
+      } else {
+        setState(() {
+          isConnected = "false";
+        });
+      }
 
 
 

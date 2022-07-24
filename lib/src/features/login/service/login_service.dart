@@ -181,6 +181,7 @@ class LoginService {
   // }
 
   static Future<Resource> getResources({@required String deviceId, @required String token}) async {
+     // String url = "francos.store";
     String url = "pos.outerboxcloud.com";
     final resourcesRequest = Uri.https(url, '/api/resources');
     final resourceResponse = await http.get(resourcesRequest, headers: {
